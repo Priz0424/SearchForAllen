@@ -178,3 +178,47 @@ function setupEvents () {
 }
 
 window.addEventListener('DOMContentLoaded', () => { initDates(); setupEvents(); });
+
+function updateLabels() {
+  const areaText = document.querySelector('#areaSelect option:checked').textContent;
+  const hubText = document.querySelector('#hubSelect option:checked').textContent;
+  const midText = document.querySelector('#midSelect option:checked').textContent;
+
+  document.getElementById('label1').textContent = `${areaText} A→B ${hubText}`;
+  document.getElementById('label2').textContent = `${hubText} B→C ${midText}`;
+  document.getElementById('label3').textContent = `${midText} C→B ${hubText}`;
+  document.getElementById('label4').textContent = `${hubText} B→A ${areaText}`;
+}
+
+// 每次選單改變時更新
+document.getElementById('areaSelect').addEventListener('change', updateLabels);
+document.getElementById('hubSelect').addEventListener('change', updateLabels);
+document.getElementById('midSelect').addEventListener('change', updateLabels);
+
+// 頁面一開始載入時更新
+document.addEventListener('DOMContentLoaded', updateLabels);
+
+function extractChinese(text) {
+  const match = text.match(/\((.*?)\)/);
+  return match ? match[1] : text;
+}
+
+function updateLabels() {
+  const areaText = document.querySelector('#areaSelect option:checked').textContent;
+  const hubText = document.querySelector('#hubSelect option:checked').textContent;
+  const midText = document.querySelector('#midSelect option:checked').textContent;
+
+  const areaName = extractChinese(areaText);
+  const hubName = extractChinese(hubText);
+  const midName = extractChinese(midText);
+
+  document.getElementById('label1').textContent = `${areaName} A→B ${hubName}`;
+  document.getElementById('label2').textContent = `${hubName} B→C ${midName}`;
+  document.getElementById('label3').textContent = `${midName} C→B ${hubName}`;
+  document.getElementById('label4').textContent = `${hubName} B→A ${areaName}`;
+}
+
+document.getElementById('areaSelect').addEventListener('change', updateLabels);
+document.getElementById('hubSelect').addEventListener('change', updateLabels);
+document.getElementById('midSelect').addEventListener('change', updateLabels);
+document.addEventListener('DOMContentLoaded', updateLabels);
