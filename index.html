@@ -103,17 +103,17 @@ function validateDates() {
 function startLoading() { genBtn.disabled = true; genBtn.innerText = '產生中'; genBtn.classList.add('loading'); }
 function stopLoading() { genBtn.disabled = false; genBtn.innerText = '產生行程'; genBtn.classList.remove('loading'); }
 
-function batchOpen(from, prefix, header) {
+function batchOpen(from, prefix) {
   const links = [...document.querySelectorAll(`a[id^='${from}-${prefix}-']`)];
-  let batch = [];
-  links.forEach((a, i) => {
-    batch.push(a.href);
-    if (batch.length === 5 || i === links.length - 1) {
-      batch.forEach(u => window.open(u, '_blank'));
-      batch = [];
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i >= links.length) {
+      clearInterval(interval);
+      return;
     }
-  });
-  header.classList.add('clicked');
+    window.open(links[i].href, '_blank');
+    i++;
+  }, 1000); // 每隔1000毫秒 (1秒) 開一個
 }
 function createTable(from, cities, hub, mid, dates) {
   const wrap = document.createElement('div');
