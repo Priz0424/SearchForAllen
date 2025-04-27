@@ -8,166 +8,91 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { font-family: ui-sans-serif; }
-    .clicked { color: #9ca3af; text-decoration: line-through; }
-    table tbody tr:hover { background-color: #eef2ff; }
-    .loading::after { content: '...'; animation: dots 1s steps(3, end) infinite; }
-    @keyframes dots {
-      0%, 20% { content: ''; }
-      40% { content: '.'; }
-      60% { content: '..'; }
-      80%, 100% { content: '...'; }
-    }
-    .fade-in { animation: fadeIn 0.8s ease-in-out; }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    .loading::after{content:'...';animation:dots 1s steps(3,end) infinite}
+    @keyframes dots{0%,20%{content:'';}40%{content:'.';}60%{content:'..';}80%,100%{content:'...';}}
+    .toast{animation:pop .3s ease-out forwards}@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+    #scheduleModal{background:rgba(0,0,0,.5);position:fixed;inset:0;display:none;justify-content:center;align-items:center;z-index:50}
+    #scheduleModal:not(.hidden){display:flex;}
+    #scheduleContent{background:#fff;padding:20px;border-radius:12px;width:90%;max-width:650px;max-height:80vh;overflow-y:auto;position:relative}
   </style>
 </head>
-<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-50 to-white p-6">
-<div class="w-full max-w-6xl bg-white/90 backdrop-blur-md shadow-2xl rounded-3xl px-10 py-12 space-y-12">
-<h1 class="text-4xl font-extrabold text-center text-indigo-700 tracking-tight drop-shadow-sm">Skyscanner 外站票搜索</h1>
+<body class="bg-indigo-50 min-h-screen flex flex-col items-center p-6">
+<h1 class="text-4xl font-extrabold text-indigo-700 mb-8">Skyscanner 外站票搜索</h1>
 
-<!-- 控制面板 -->
-<div class="grid md:grid-cols-2 items-start gap-y-10 gap-x-14">
-  <div class="space-y-6">
-    <div class="flex flex-col">
-      <label class="font-semibold text-gray-700 mb-1">A 地區</label>
-      <select id="areaSelect" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400">
-        <option value="japan">日本</option><option value="southeast">東南亞</option><option value="hkmo">港澳</option>
-      </select>
+<div class="w-full max-w-6xl bg-white/90 shadow-xl rounded-3xl p-10 space-y-10">
+  <!-- 控制面板 -->
+  <div class="grid md:grid-cols-2 gap-10">
+    <div class="space-y-4">
+      <div class="flex gap-4">
+        <label><input type="checkbox" id="evaCheckbox" data-airline="EVA"  class="mr-1" checked>長榮</label>
+        <label><input type="checkbox" id="starluxCheckbox" data-airline="STARLUX" class="mr-1" checked>星宇</label>
+        <label><input type="checkbox" id="ciCheckbox" data-airline="CI" class="mr-1" checked>華航</label>
+        <label><input type="checkbox" id="cxCheckbox" data-airline="CX" class="mr-1" checked>國泰</label>
+      </div>
+
+      <div class="flex flex-col"><label class="font-semibold mb-1">A 地區</label>
+        <select id="areaSelect" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400">
+          <option value="japan">日本</option><option value="southeast">東南亞</option><option value="hkmo">港澳</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col"><label class="font-semibold mb-1">B 樞紐</label>
+        <select id="hubSelect" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400">
+          <option value="TPE">TPE (台北)</option><option value="KHH">KHH (高雄)</option>
+        </select>
+      </div>
+
+      <div class="flex flex-col"><label class="font-semibold mb-1">C 中間城市</label>
+        <select id="midSelect" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400">
+          <!-- 美西 -->
+          <optgroup label="美西">
+            <option value="SEA">SEA (西雅圖)</option><option value="SFO">SFO (舊金山)</option><option value="LAX">LAX (洛杉磯)</option>
+          </optgroup>
+          <!-- 美東+中 -->
+          <optgroup label="美東+中">
+            <option value="JFK">JFK (紐約)</option><option value="EWR">EWR (紐瓦克)</option><option value="BOS">BOS (波士頓)</option><option value="ORD">ORD (芝加哥)</option>
+            <option value="MAN">MAN (曼徹斯特)</option>
+          </optgroup>
+          <!-- 歐洲 -->
+          <optgroup label="歐洲">
+            <option value="LHR">LHR (倫敦)</option><option value="CDG">CDG (巴黎)</option><option value="AMS">AMS (阿姆斯特丹)</option><option value="VIE">VIE (維也納)</option><option value="FRA">FRA (法蘭克福)</option><option value="MUC">MUC (慕尼黑)</option><option value="ZRH">ZRH (蘇黎世)</option><option value="FCO">FCO (羅馬)</option><option value="MXP">MXP (米蘭)</option><option value="PRG">PRG (布拉格)</option><option value="BRU">BRU (布魯塞爾)</option><option value="MAD">MAD (馬德里)</option><option value="BCN">BCN (巴塞隆納)</option>
+          </optgroup>
+          <!-- 紐澳 -->
+          <optgroup label="紐澳">
+            <option value="SYD">SYD (雪梨)</option><option value="AKL">AKL (奧克蘭)</option>
+          </optgroup>
+        </select>
+      </div>
     </div>
-    <div class="flex flex-col">
-      <label class="font-semibold text-gray-700 mb-1">B 樞紐</label>
-      <select id="hubSelect" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400">
-        <option value="TPE">TPE (台北)</option><option value="KHH">KHH (高雄)</option>
-      </select>
-    </div>
-    <div class="flex flex-col">
-      <label class="font-semibold text-gray-700 mb-1">C 中間城市</label>
-      <select id="midSelect" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400">
-        <optgroup label="美西"><option value="SEA">SEA (西雅圖)</option><option value="SFO">SFO (舊金山)</option><option value="LAX">LAX (洛杉磯)</option></optgroup>
-        <optgroup label="美東+中"><option value="JFK">JFK (紐約)</option><option value="EWR">EWR (紐瓦克)</option><option value="BOS">BOS (波士頓)</option><option value="ORD">ORD (芝加哥)</option></optgroup>
-        <optgroup label="歐洲"><option value="LHR">LHR (倫敦)</option><option value="CDG">CDG (巴黎)</option><option value="AMS">AMS (阿姆斯特丹)</option><option value="VIE">VIE (維也納)</option><option value="FRA">FRA (法蘭克福)</option><option value="MUC">MUC (慕尼黑)</option><option value="ZRH">ZRH (蘇黎世)</option><option value="FCO">FCO (羅馬)</option><option value="MXP">MXP (米蘭)</option></optgroup>
-        <optgroup label="紐澳"><option value="SYD">SYD (雪梨)</option><option value="AKL">AKL (奧克蘭)</option></optgroup>
-      </select>
+
+    <div class="space-y-4">
+      <div class="flex flex-col"><label class="font-semibold mb-1">日期 A→B</label><input id="d1" type="date" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400"></div>
+      <div class="flex flex-col"><label class="font-semibold mb-1">日期 B→C</label><input id="d2" type="date" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400"></div>
+      <div class="flex flex-col"><label class="font-semibold mb-1">日期 C→B</label><input id="d3" type="date" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400"></div>
+      <div class="flex flex-col"><label class="font-semibold mb-1">日期 B→A</label><input id="d4" type="date" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400"></div>
     </div>
   </div>
-  <div class="space-y-6">
-    <div class="flex flex-col"><label class="font-semibold text-gray-700 mb-1">日期 A→B</label><input id="d1" type="date" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400"></div>
-    <div class="flex flex-col"><label class="font-semibold text-gray-700 mb-1">日期 B→C</label><input id="d2" type="date" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400"></div>
-    <div class="flex flex-col"><label class="font-semibold text-gray-700 mb-1">日期 C→B</label><input id="d3" type="date" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400"></div>
-    <div class="flex flex-col"><label class="font-semibold text-gray-700 mb-1">日期 B→A</label><input id="d4" type="date" class="rounded-lg border-gray-300 focus:ring-2 focus:ring-indigo-400"></div>
+
+  <div class="flex justify-center gap-4">
+    <button id="genBtn" class="px-8 py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow">產生行程</button>
+    <button id="clearBtn" class="px-8 py-3 rounded-full bg-gray-400 hover:bg-gray-500 text-white font-semibold shadow">清空結果</button>
+    <button id="showScheduleBtn" class="px-8 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow">顯示班表</button>
+  </div>
+
+  <div id="resultArea" class="space-y-12"></div>
+</div>
+
+<!-- 班表彈窗 -->
+<div id="scheduleModal" class="hidden">
+  <div id="scheduleContent">
+    <button id="closeModalBtn" class="absolute top-2 right-2 text-red-500">✕</button>
+    <div id="scheduleText" class="whitespace-pre-wrap text-sm"></div>
   </div>
 </div>
 
-<div class="flex justify-center gap-4">
-  <button id="genBtn" class="px-8 py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow-lg transition">產生行程</button>
-  <button id="clearBtn" class="px-8 py-3 rounded-full bg-gray-400 hover:bg-gray-500 text-white font-semibold shadow-lg transition">清空結果</button>
-</div>
+<!-- 先放班表，再放主程式；加 defer 保證 DOM 先準備好 -->
+<script src="FLIGHT_SCHEDULES.js" defer></script>
+<script src="main.js" defer></script>
 
-<div id="resultArea" class="space-y-12"></div>
-
-<script>
-const areaCities = { japan: ['NRT', 'KIX', 'CTS', 'NGO'], southeast: ['BKK', 'CNX', 'KUL', 'DAD', 'HAN', 'SGN'], hkmo: ['HKG', 'MFM'] };
-const cityNames = { NRT:'東京', KIX:'大阪', CTS:'札幌', NGO:'名古屋', BKK:'曼谷', CNX:'清邁', KUL:'吉隆坡', DAD:'峴港', HAN:'河內', SGN:'胡志明市', HKG:'香港', MFM:'澳門', TPE:'台北', KHH:'高雄', SEA:'西雅圖', SFO:'舊金山', LAX:'洛杉磯', JFK:'紐約', EWR:'紐瓦克', BOS:'波士頓', ORD:'芝加哥', LHR:'倫敦', CDG:'巴黎', AMS:'阿姆斯特丹', VIE:'維也納', FRA:'法蘭克福', MUC:'慕尼黑', ZRH:'蘇黎世', FCO:'羅馬', MXP:'米蘭', SYD:'雪梨', AKL:'奧克蘭' };
-const cityCountry = { BKK: 'TH', CNX: 'TH', KUL: 'MY', DAD: 'VN', HAN: 'VN', SGN: 'VN' };
-let lastValidDates = {};
-
-function addDays(d, n) { const t = new Date(d); t.setDate(t.getDate() + n); return t.toISOString().split('T')[0]; }
-function addMonths(d, n) { const t = new Date(d); t.setMonth(t.getMonth() + n); return t.toISOString().split('T')[0]; }
-function seg(a1,a4,b,c,d1,d2,d3,d4) { return `${a1.toLowerCase()}/${d1}/${b.toLowerCase()}/${b.toLowerCase()}/${d2}/${c.toLowerCase()}/${c.toLowerCase()}/${d3}/${b.toLowerCase()}/${b.toLowerCase()}/${d4}/${a4.toLowerCase()}`; }
-function url(seg,cabin) { return 'https://www.skyscanner.com.tw/transport/d/' + seg + '/?adults=1&cabinclass=' + cabin + '&children=0&infants=0'; }
-
-function showToast(msg, color = 'red') {
-  const toast = document.createElement('div');
-  toast.className = `fixed top-6 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded-lg shadow-lg bg-${color}-500 text-white text-sm z-50 animate-bounce`;
-  toast.innerText = msg;
-  document.body.appendChild(toast);
-  setTimeout(() => { toast.classList.add('opacity-0', 'transition-opacity', 'duration-500'); setTimeout(() => toast.remove(), 500); }, 2000);
-}
-function validateDates() {
-  const inputs = [d1, d2, d3, d4];
-  const dates = inputs.map(input => new Date(input.value));
-  inputs.forEach(input => input.classList.remove('border-red-500'));
-  for (let i = 0; i < dates.length - 1; i++) {
-    if (dates[i].getTime() >= dates[i + 1].getTime()) {
-      showToast(`第 ${i + 1} 個日期必須早於第 ${i + 2} 個日期！`);
-      inputs[i].focus();
-      inputs[i].classList.add('border-red-500');
-      return false;
-    }
-  }
-  return true;
-}
-function startLoading() { genBtn.disabled = true; genBtn.innerText = '產生中'; genBtn.classList.add('loading'); }
-function stopLoading() { genBtn.disabled = false; genBtn.innerText = '產生行程'; genBtn.classList.remove('loading'); }
-
-function batchOpen(from, prefix) {
-  const links = [...document.querySelectorAll(`a[id^='${from}-${prefix}-']`)];
-  let i = 0;
-  const interval = setInterval(() => {
-    if (i >= links.length) {
-      clearInterval(interval);
-      return;
-    }
-    window.open(links[i].href, '_blank');
-    i++;
-  }, 1000); // 每隔1000毫秒 (1秒) 開一個
-}
-function createTable(from, cities, hub, mid, dates) {
-  const wrap = document.createElement('div');
-  wrap.className = 'space-y-2 fade-in';
-  wrap.innerHTML = `<h3 class="text-2xl font-semibold text-indigo-800">${cityNames[from]} 出發</h3>`;
-  const tbl = document.createElement('table');
-  tbl.className = 'min-w-full table-auto border text-center rounded-xl overflow-hidden shadow-md';
-  tbl.innerHTML = `<thead><tr class="bg-indigo-100 text-sm"><th class="py-2 px-4 border">行程內容</th><th class="py-2 px-4 border cursor-pointer text-indigo-600 hover:underline" onclick="batchOpen('${from}','eco',this)">全部經濟艙</th><th class="py-2 px-4 border cursor-pointer text-indigo-600 hover:underline" onclick="batchOpen('${from}','biz',this)">全部商務艙</th></tr></thead><tbody></tbody>`;
-  const tb = tbl.querySelector('tbody');
-  cities.forEach((to, idx) => {
-    const s = seg(from, to, hub, mid, ...dates);
-    tb.innerHTML += `<tr><td class='border px-4 py-2 text-sm'>${cityNames[from]}出發，回到${cityNames[to]}，${cityNames[mid]}來回</td><td class='border px-4 py-2'><a id='${from}-eco-${idx}' href='${url(s,'economy')}' target='_blank' class='text-blue-600 hover:underline'>經濟艙連結</a></td><td class='border px-4 py-2'><a id='${from}-biz-${idx}' href='${url(s,'business')}' target='_blank' class='text-blue-600 hover:underline'>商務艙連結</a></td></tr>`;
-  });
-  wrap.appendChild(tbl);
-  return wrap;
-}
-function generate() {
-  const area = areaSelect.value, hub = hubSelect.value, mid = midSelect.value;
-  const dates = [d1.value, d2.value, d3.value, d4.value];
-  const cities = areaCities[area];
-  const res = document.getElementById('resultArea'); res.innerHTML = '';
-  startLoading();
-  setTimeout(() => {
-    cities.forEach(from => {
-      let sameCountryCities = cities.filter(to => cityCountry[to] === cityCountry[from]);
-      sameCountryCities = sameCountryCities.sort((a, b) => (a === from ? -1 : b === from ? 1 : 0));
-      res.appendChild(createTable(from, sameCountryCities, hub, mid, dates));
-    });
-    stopLoading();
-    showToast('行程產生成功！', 'green');
-  }, 500);
-}
-function initDates() {
-  const today = new Date();
-  const baseDateStr = addDays(today, 15);
-  d1.value = baseDateStr;
-  const base = new Date(baseDateStr);
-  d2.value = addMonths(base, 1);
-  d3.value = addMonths(base, 2);
-  d4.value = addMonths(base, 3);
-}
-function setupEventListeners() {
-  [d1, d2, d3, d4].forEach(input => {
-    input.addEventListener('focus', () => { lastValidDates[input.id] = input.value; });
-    input.addEventListener('change', () => {
-      if (!validateDates()) { input.value = lastValidDates[input.id]; }
-    });
-  });
-  genBtn.onclick = () => { if (validateDates()) { generate(); } };
-  clearBtn.onclick = () => { document.getElementById('resultArea').innerHTML = ''; };
-}
-window.addEventListener('DOMContentLoaded', () => { initDates(); setupEventListeners(); });
-</script>
-
-</div>
 </body>
 </html>
