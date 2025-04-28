@@ -228,7 +228,6 @@ function toggleLoading(state){
 function setupEvents(){
   [$d1,$d2,$d3,$d4].forEach(el=>el.addEventListener('change',()=>checkFlight(el)));
   $genBtn.addEventListener('click',generate);
-  $('clearBtn').addEventListener('click',()=>{$result.innerHTML=''});
   $('showScheduleBtn').addEventListener('click',showFlightSchedules);
   $('closeModalBtn').addEventListener('click',()=>{$scheduleM.classList.add('hidden')});
   ['areaSelect','hubSelect','midSelect'].forEach(id=>{
