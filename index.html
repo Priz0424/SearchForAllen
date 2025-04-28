@@ -14,7 +14,57 @@
     #scheduleModal{background:rgba(0,0,0,.5);position:fixed;inset:0;display:none;justify-content:center;align-items:center;z-index:50}
     #scheduleModal:not(.hidden){display:flex;}
     #scheduleContent{background:#fff;padding:20px;border-radius:12px;width:90%;max-width:650px;max-height:80vh;overflow-y:auto;position:relative}
-  </style>
+/* 班表第一欄固定，方便橫向捲動 */
+.schedule-table th:first-child,
+.schedule-table td:first-child {
+  position: sticky;
+  left: 0;
+  background: white;
+  z-index: 2;
+}
+
+/* 分隔線樣式 */
+.divider-row td {
+  border-bottom: 1px solid #e2e8f0;
+  height: 10px;
+  background: white;
+}
+#scheduleContent {
+  width: 90%;
+  max-width: 1200px; /* 電腦最大到 1200px */
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  overflow-y: auto;
+  max-height: 80vh;
+  position: relative;
+}
+
+@media (max-width: 768px) {
+  /* 手機版維持較小 */
+  #scheduleContent {
+    max-width: 95%;
+    padding: 16px;
+  }
+}
+#scheduleContent {
+  width: 90%;
+  max-width: 1200px;
+  height: 80vh; /* ✨固定高度 */
+  overflow: hidden; /* ✨不讓整個視窗滾動 */
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+}
+
+#scheduleText {
+  flex: 1; /* ✨自己撐滿剩下空間 */
+  overflow-x: auto; /* ✨左右滑動表格 */
+  overflow-y: auto; /* ✨內容自己上下滾動 */
+}
+</style>
 </head>
 <body class="bg-indigo-50 min-h-screen flex flex-col items-center p-6">
 <h1 class="text-4xl font-extrabold text-indigo-700 mb-8">Skyscanner 外站票搜索</h1>
@@ -47,11 +97,16 @@
           <!-- 美西 -->
           <optgroup label="美西">
             <option value="SEA">SEA (西雅圖)</option><option value="SFO">SFO (舊金山)</option><option value="LAX">LAX (洛杉磯)</option>
+            <option value="ONT">ONT (安大略)</option>
           </optgroup>
           <!-- 美東+中 -->
           <optgroup label="美東+中">
             <option value="JFK">JFK (紐約)</option><option value="EWR">EWR (紐瓦克)</option><option value="BOS">BOS (波士頓)</option><option value="ORD">ORD (芝加哥)</option>
             <option value="MAN">MAN (曼徹斯特)</option>
+            <option value="YVR">YVR (溫哥華)</option>
+            <option value="YYZ">YYZ (多倫多)</option>
+            <option value="IAH">IAH (休士頓)</option>
+            <option value="DFW">DFW (達拉斯)</option>
           </optgroup>
           <!-- 歐洲 -->
           <optgroup label="歐洲">
@@ -107,6 +162,7 @@
 <div id="scheduleModal" class="hidden">
   <div id="scheduleContent">
     <button id="closeModalBtn" class="absolute top-2 right-2 text-red-500">✕</button>
+    <div id="scheduleTabs" class="flex gap-2 mb-2"></div>
     <div id="scheduleText" class="whitespace-pre-wrap text-sm"></div>
   </div>
 </div>
@@ -117,4 +173,3 @@
 
 </body>
 </html>
-
