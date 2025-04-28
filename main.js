@@ -1,11 +1,35 @@
 /* ============================================================================
  * Skyscanner 外站票搜尋 – 簡化版
  * Author: PrismoChen (2025-04-28 02:30 +08)
- * 功能：根據使用者輸入自動產生 4 段外站票查詢網址，並檢查指定日是否有航班 
+ * 功能：根據使用者輸入自動產生 4 段外站票查詢網址，並檢查指定日是否有航班
  * ============================================================================ */
 
 /* ------------------------- ①　資料常數 ------------------------- */
 
+/* ==================  新增：分頁定義  ==================*/
+const SCHEDULE_PAGES = {
+  us_nz: {
+    label: '美國/紐澳',
+    groups: [
+      ['SEA','SFO','LAX','ONT'],       // 美西
+      ['JFK','BOS','ORD','YVR','YYZ','IAH','DFW','MAN'], // 美中+加東
+      ['SYD','AKL']             // 紐澳
+    ]
+  },
+  europe: {
+    label: '歐洲',
+    groups: [ [
+      'LHR','CDG','AMS','VIE','FRA','MUC','ZRH','FCO','MXP','PRG','BRU','MAD','BCN'
+    ] ]
+  },
+  sea: {
+    label: '東南亞',
+    groups: [ ['BKK','CNX','KUL','DAD','HAN','SGN'] ]
+  }
+};
+
+const WEEK_CH = ['一','二','三','四','五','六','日'];
+/* =======================================================*/
 
 /** A 區域選單 → 城市代碼 */
 const AREA_CITIES = {
@@ -15,7 +39,7 @@ const AREA_CITIES = {
 };
 
 /** 城市中文名稱 */
-const CITY_NAMES = {NRT:'東京',KIX:'大阪',CTS:'札幌',NGO:'名古屋',BKK:'曼谷',CNX:'清邁',KUL:'吉隆坡',DAD:'峴港',HAN:'河內',SGN:'胡志明市',HKG:'香港',MFM:'澳門',TPE:'台北',KHH:'高雄',SEA:'西雅圖',SFO:'舊金山',LAX:'洛杉磯',JFK:'紐約',EWR:'紐瓦克',BOS:'波士頓',ORD:'芝加哥',LHR:'倫敦',CDG:'巴黎',AMS:'阿姆斯特丹',VIE:'維也納',FRA:'法蘭克福',MUC:'慕尼黑',ZRH:'蘇黎世',FCO:'羅馬',MXP:'米蘭',SYD:'雪梨',AKL:'奧克蘭',PRG:'布拉格',MAN:'曼徹斯特',BRU:'布魯塞爾',MAD:'馬德里',BCN:'巴塞隆納'};
+const CITY_NAMES = {IAH: '休士頓',YVR: '溫哥華',YYZ: '多倫多',DFW: '達拉斯',ONT: '安大略',NRT:'東京',KIX:'大阪',CTS:'札幌',NGO:'名古屋',BKK:'曼谷',CNX:'清邁',KUL:'吉隆坡',DAD:'峴港',HAN:'河內',SGN:'胡志明市',HKG:'香港',MFM:'澳門',TPE:'台北',KHH:'高雄',SEA:'西雅圖',SFO:'舊金山',LAX:'洛杉磯',ONT:'安大略',JFK:'紐約',BOS:'波士頓',ORD:'芝加哥',LHR:'倫敦',CDG:'巴黎',AMS:'阿姆斯特丹',VIE:'維也納',FRA:'法蘭克福',MUC:'慕尼黑',ZRH:'蘇黎世',FCO:'羅馬',MXP:'米蘭',SYD:'雪梨',AKL:'奧克蘭',PRG:'布拉格',MAN:'曼徹斯特',BRU:'布魯塞爾',MAD:'馬德里',BCN:'巴塞隆納'};
 
 /** 判斷同國家用 */
 const CITY_COUNTRY = { BKK:'TH', CNX:'TH', KUL:'MY', DAD:'VN', HAN:'VN', SGN:'VN' };
@@ -82,23 +106,66 @@ function checkFlight (inputEl) {
   });
 }
 
-/** 以表格方式顯示所有班表（純前端 Modal） */
-function showFlightSchedules () {
-  let html = '';
-  for (const [air, map] of Object.entries(FLIGHT_SCHEDULES)) {
-    html += `<h3 class="font-bold text-indigo-700 mb-1">【${air}】</h3>
-             <table class="w-full text-sm mb-4 border">
-             <thead><tr class="bg-indigo-100"><th class="border px-2 py-1">航點</th>
-             <th class="border px-2 py-1">每週飛行日</th></tr></thead><tbody>`;
-    html += Object.entries(map).map(([city,days]) =>
-      `<tr><td class="border px-2 py-1 text-center">${city}</td>
-           <td class="border px-2 py-1">${days.map(d=>'一二三四五六日'[d-1]).join('、')}</td></tr>`
-    ).join('');
-    html += '</tbody></table>';
-  }
-  $scheduleT.innerHTML = html;
-  $scheduleM.classList.remove('hidden');
+function showFlightSchedules() {
+  // 建立標籤按鈕
+  const $tabs = document.getElementById('scheduleTabs');
+  $tabs.innerHTML = Object.entries(SCHEDULE_PAGES).map(([k,p],i)=>
+    `<button data-page="${k}" class="px-3 py-1 rounded ${i===0?'bg-indigo-600 text-white':'bg-gray-200'}" onclick="renderSchedule('${k}')">${p.label}</button>`
+  ).join('');
+  renderSchedule('us_nz'); // 預設第一頁
+  document.getElementById('scheduleModal').classList.remove('hidden');
 }
+
+function renderSchedule(key) {
+  const page = SCHEDULE_PAGES[key];
+  if (!page) return;
+
+  // 切換分頁按鈕樣式
+  document.querySelectorAll('#scheduleTabs button').forEach(btn => {
+    btn.classList.toggle('bg-indigo-600', btn.dataset.page === key);
+    btn.classList.toggle('text-white', btn.dataset.page === key);
+    btn.classList.toggle('bg-gray-200', btn.dataset.page !== key);
+  });
+
+  // 建表格
+  let html = '<table class="w-full text-sm border-collapse schedule-table">';
+html += '<thead><tr class="bg-indigo-100">';
+html += '<th class="border px-2 py-1 w-0 whitespace-nowrap">航點</th>'; // ✨航點縮窄
+WEEK_CH.forEach(d => {
+  html += `<th class="border px-4 py-2 w-20 text-center">${d}</th>`; // ✨星期欄維持寬
+});
+html += '</tr></thead><tbody>';
+
+page.groups.forEach((group, gi) => {
+  group.forEach(city => {
+    html += `<tr><td class="border px-2 py-1 w-20 whitespace-nowrap font-medium">${city} (${CITY_NAMES[city]})</td>`; // ✨這裡的航點格也加 w-20
+
+    WEEK_CH.forEach((d, idx) => {
+      const day = idx + 1;
+      const logoList = ['EVA', 'STARLUX', 'CI', 'CX'];
+      const logos = logoList.map(air => {
+        const short = { EVA: 'BR', STARLUX: 'JX', CI: 'CI', CX: 'CX' }[air];
+        const flights = FLIGHT_SCHEDULES[air]?.[city] || [];
+        if (flights.includes(day)) {
+          return `<img src="${short}.jpeg" alt="${air}" title="${air}" class="h-5 w-5 inline-block">`;
+        } else {
+          return `<div class="h-5 w-5 inline-block"></div>`;
+        }
+      }).join('');
+      html += `<td class="border px-2 py-1 text-center"><div class="logo-container">${logos}</div></td>`;
+    });
+
+    html += '</tr>';
+  });
+
+  if (gi !== page.groups.length - 1) {
+    html += '<tr class="divider-row"><td colspan="8"></td></tr>';
+  }
+});
+
+  html += '</tbody></table>';
+  document.getElementById('scheduleText').innerHTML = html;
+}renderSchedule
 
 /* ------------------------- ⑤　核心：產生行程 ------------------------- */
 
