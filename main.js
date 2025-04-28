@@ -102,19 +102,41 @@ function showFlightSchedules () {
 
 /* ------------------------- ⑤　核心：產生行程 ------------------------- */
 
-/** 產生 a‧b‧c‧d 段組合的查票 table（回傳 DOM） */
+/** 產生 a‧b‧c‧d 段組合的查票 table（回傳 DOM）＋帶 LOGO */
 function buildTable (from, toList, hub, mid, d) {
   const seg = (a1,a4,b,c) => `${a1}/${d[0]}/${b}/${b}/${d[1]}/${c}/${c}/${d[2]}/${b}/${b}/${d[3]}/${a4}`.toLowerCase();
-  const rows = toList.map((to,i) => `
+
+  const rows = toList.map((to,i) => {
+    // 這裡開始處理LOGO
+    const logos = [];
+    const checkedAirlines = document.querySelectorAll('[data-airline]:checked');
+    const dayOfWeek = [7,1,2,3,4,5,6][new Date(d[1]).getDay()]; // 取 date2 的星期
+    checkedAirlines.forEach(cb => {
+      const code = cb.dataset.airline;   // EVA / STARLUX / CI / CX
+      let shortCode = code;
+      if (code === 'EVA') shortCode = 'BR';
+      if (code === 'STARLUX') shortCode = 'JX';
+      // 檢查該航空在 FLIGHT_SCHEDULES 裡，TPE->mid城市，該天是否有班機
+      const list = FLIGHT_SCHEDULES[code]?.[mid];
+      if (list && list.includes(dayOfWeek)) {
+        logos.push(`<img src="./${shortCode}.jpeg" alt="${shortCode}" class="inline h-6 mx-1">`);
+      }
+    });
+
+    return `
     <tr>
-      <td class="border px-4 py-2 text-sm">${CITY_NAMES[from]}出發，回到${CITY_NAMES[to]}，${CITY_NAMES[mid]}來回</td>
+      <td class="border px-4 py-2 text-sm flex items-center gap-2">
+        ${CITY_NAMES[from]} 出發，回到 ${CITY_NAMES[to]}，${CITY_NAMES[mid]} 來回
+        ${logos.join('')}
+      </td>
       <td class="border px-4 py-2">
          <a href="${skyscannerURL(seg(from,to,hub,mid),'economy')}" target="_blank" 
             id="${from}-eco-${i}" class="text-blue-600 hover:underline">經濟艙</a></td>
       <td class="border px-4 py-2">
          <a href="${skyscannerURL(seg(from,to,hub,mid),'business')}" target="_blank" 
             id="${from}-biz-${i}" class="text-blue-600 hover:underline">商務艙</a></td>
-    </tr>`).join('');
+    </tr>`;
+  }).join('');
 
   const wrapper = document.createElement('div');
   wrapper.className = 'space-y-2';
