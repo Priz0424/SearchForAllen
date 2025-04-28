@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Skyscanner 外站票搜索</title>
+  <title>Skyscanner 外站搜搜</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body{font-family:ui-sans-serif}
@@ -12,7 +12,11 @@
     #scheduleModal:not(.hidden){display:flex;}
     /* 固定第一欄、分隔線 */
     .schedule-table th:first-child,.schedule-table td:first-child{position:sticky;left:0;background:white;z-index:2}
+    /* 固定星期表頭 -- 新增 */
+    .schedule-table thead th {position: sticky;top: 0;background: #e0e7ff;z-index: 3;}
     .divider-row td{border-bottom:1px solid #e2e8f0;height:10px;background:white}
+    /* 航點（左上角）特別強制在最上層 */
+    .schedule-table thead th:first-child {z-index: 5; /* 比其他 th(3) 和 td(2) 都高 */}
     /* 班表內容框 */
     #scheduleContent {
   position: relative;
@@ -29,7 +33,7 @@
   </style>
 </head>
 <body class="bg-indigo-50 min-h-screen flex flex-col items-center p-6">
-  <h1 class="text-4xl font-extrabold text-indigo-700 mb-8">Skyscanner 外站票搜索</h1>
+  <h1 class="text-3xl font-extrabold text-indigo-700 mb-8">Skyscanner 外站票搜索</h1>
 
   <div class="w-full max-w-6xl bg-white/90 shadow-xl rounded-3xl p-10 space-y-10">
     <!-- 控制面板 -->
@@ -85,11 +89,10 @@
     </div>
 
     <div class="flex justify-center gap-4">
-      <button id="genBtn" class="flex items-center gap-2 px-8 py-3 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow">
+      <button id="genBtn" class="flex items-center gap-1 px-6 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold shadow">
         <span class="btn-text">產生行程</span>
       </button>
-      <button id="clearBtn" class="px-8 py-3 rounded-full bg-gray-400 hover:bg-gray-500 text-white font-semibold shadow">清空結果</button>
-      <button id="showScheduleBtn" class="px-8 py-3 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow">顯示班表</button>
+      <button id="showScheduleBtn" class="px-6 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow">顯示班表</button>
     </div>
 
     <div id="resultArea" class="space-y-12"></div>
