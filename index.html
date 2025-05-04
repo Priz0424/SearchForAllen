@@ -44,6 +44,11 @@
           <label><input type="checkbox" id="starluxCheckbox" data-airline="STARLUX" class="mr-1" checked>星宇</label>
           <label><input type="checkbox" id="ciCheckbox" data-airline="CI" class="mr-1" checked>華航</label>
           <label><input type="checkbox" id="cxCheckbox" data-airline="CX" class="mr-1" checked>國泰</label>
+                    <!-- 捨棄尾段（最低價） -->
+                    <label class="ml-4">
+                      <input type="checkbox" id="throwawayCheckbox" class="mr-1">
+                      捨棄尾段 (最低價)
+                    </label>
         </div>
 
         <div class="flex flex-col"><label class="font-semibold mb-1">A 地區</label>
@@ -107,6 +112,38 @@
     </div>
   </div>
 
+</div>
+  <!-- 設定日期欄位 min 為今日 -->
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const todayStr = new Date().toISOString().slice(0, 10);
+      ['d1', 'd2', 'd3', 'd4'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.setAttribute('min', todayStr);
+      });
+      // Patch: Add validation to generate() if defined in main.js
+      // Wait for main.js to be loaded
+      document.getElementById('genBtn')?.addEventListener('click', function patchGenerateValidation(e) {
+        // Remove this event after first run to avoid duplicate patch
+        this.removeEventListener('click', patchGenerateValidation);
+        // Try to patch generate function
+        if (typeof window.generate === 'function') {
+          const origGenerate = window.generate;
+          window.generate = function patchedGenerate() {
+            const d1 = document.getElementById('d1').value;
+            const d2 = document.getElementById('d2').value;
+            const d3 = document.getElementById('d3').value;
+            const d4 = document.getElementById('d4').value;
+            if (!d1 || !d2 || !d3 || !d4) {
+              alert('請填寫所有合法日期後再產生行程');
+              return;
+            }
+            return origGenerate.apply(this, arguments);
+          }
+        }
+      }, { once: true });
+    });
+  </script>
   <!-- 資料與主程式 -->
   <script src="data.js" defer></script>
   <script src="schedulePages.js" defer></script>
